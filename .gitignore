@@ -1,0 +1,36 @@
+# --- OS / editor ---
+.DS_Store
+Thumbs.db
+.vscode/
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# --- Snakemake ---
+.snakemake/
+
+# --- Outputs (reproducible) ---
+results/
+logs/
+
+# --- Temporary / scratch ---
+*.tmp
+*.swp
+*.swo
+
+# --- Archives ---
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+results/
+inputs/
+logs/
+prompts/

@@ -1,0 +1,34 @@
+# Analysis configuration and paths
+project_name: "BootStrapPRS-analysis"
+version: "0.1.0"
+results_dir: "results"  # Absolute path to results directory
+
+# Bootstrap splitting parameters
+bootstrap:
+  train_frac: 0.8
+  seed_base: 12345  # per-rep seed = seed_base + rep
+
+# GWAS QC/filtering parameters (PLINK)
+gwas_filters:
+  maf: 0.01
+  geno: 0.02
+  mind: 0.02
+  hwe: 1e-6
+
+
+
+
+# Analysis targets
+target_analysis:
+  LAMR_PRS:
+    plink_prefix: "inputs/LAMR/LAMR"
+    bootstraps: 20
+    PCs: 10
+    covairiates: NONE
+  
+
+# Default resources
+default_resources:
+  mem_mb: 32000
+  cores: 2
+  time: "00:30:00"
