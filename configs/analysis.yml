@@ -15,8 +15,22 @@ gwas_filters:
   mind: 0.02
   hwe: 1e-6
 
-
-
+# PRS tool configuration (global defaults)
+prsice2:
+  prsice_bin: "bin/PRSice"
+  prsice_r: "bin/PRSice.R"
+  rscript: "Rscript"      # command available on cluster (or load via module below)
+  module: ""             # optional, e.g. "R/4.2.0"
+  stat: "OR"             # GWAS effect column for PRSice (OR or BETA)
+  score: "avg"           # avg|sum|std|con-std
+  binary_target: "T"     # T/F
+  clump_kb: 250
+  clump_r2: 0.1
+  clump_p: 1
+  bar_levels: "5e-8,1e-5,0.001,0.05,0.1,0.2,0.5,1"
+  perm: ""               # optional, e.g. 1000
+  thread: 2
+  additional_params: ""  # any additional PRSice parameters
 
 # Analysis targets
 target_analysis:
@@ -25,6 +39,9 @@ target_analysis:
     bootstraps: 20
     PCs: 10
     covairiates: NONE
+    tools: ["PRSice2"]
+    prsice2:
+      ld_prefix: ""  # optional alternative LD reference PLINK prefix; empty means use target
   
 
 # Default resources
