@@ -26,6 +26,7 @@ if not isinstance(PRSICE2_CFG, dict):
 PRSICE_BIN = str(PRSICE2_CFG.get("prsice_bin", "bin/PRSice"))
 PRSICE_R = str(PRSICE2_CFG.get("prsice_r", "bin/PRSice.R"))
 RSCRIPT = str(PRSICE2_CFG.get("rscript", "Rscript"))
+FORMATTER_R = str(PRSICE2_CFG.get("formatter_r", "scripts/format_gwas_for_prsice.R"))
 PRSICE_MODULE = str(PRSICE2_CFG.get("module", ""))
 
 STAT = str(PRSICE2_CFG.get("stat", "OR"))
@@ -38,6 +39,10 @@ CLUMP_P = str(PRSICE2_CFG.get("clump_p", "1"))
 BAR_LEVELS = str(PRSICE2_CFG.get("bar_levels", ""))
 PERM = str(PRSICE2_CFG.get("perm", ""))
 THREAD = str(PRSICE2_CFG.get("thread", ""))
+ADDITIONAL_PARAMS = str(PRSICE2_CFG.get("additional_params", ""))
+QUANTILE = str(PRSICE2_CFG.get("quantile", ""))
+QUANT_BREAK = str(PRSICE2_CFG.get("quant_break", ""))
+QUANT_REF = str(PRSICE2_CFG.get("quant_ref", ""))
 
 
 def _plink_prefix_for_target(target: str) -> str:
@@ -131,9 +136,17 @@ rule prsice2_bootstrap:
         str(RESULTS_DIR / "{target}" / "log" / "prsice2_bootstrap_{rep}.log")
     params:
         out_dir=str(RESULTS_DIR / "{target}" / "prs" / "PRSice2" / "bootstrap_{rep}"),
+        test_prefix=str(
+            RESULTS_DIR
+            / "{target}"
+            / "split_train_pca_gwas"
+            / "bootstrap_{rep}"
+            / "test"
+        ),
         prsice_bin=PRSICE_BIN,
         prsice_r=PRSICE_R,
         rscript=RSCRIPT,
+        formatter_r=FORMATTER_R,
         prsice_module=PRSICE_MODULE,
         stat=STAT,
         score=SCORE,
@@ -144,6 +157,10 @@ rule prsice2_bootstrap:
         bar_levels=BAR_LEVELS,
         perm=PERM,
         thread=THREAD,
+        quantile=QUANTILE,
+        quant_break=QUANT_BREAK,
+        quant_ref=QUANT_REF,
+        additional_params=ADDITIONAL_PARAMS,
         ld_prefix=lambda wc: _ld_prefix_for_target(wc.target),
     resources:
         mem_mb=MEM_MB,
@@ -174,17 +191,17 @@ rule prsice2_bootstrap:
 
         base_out="$out_dir/gwas.prsice.base.tsv"
 
-        bash scripts/format_plink_gwas_for_prsice.sh \
-          --assoc "{input.gwas_assoc}" \
-          --bim "{input.test_bim}" \
-          --out "$base_out"
+                "{params.rscript}" "{params.formatter_r}" \
+                    --in "{input.gwas_assoc}" \
+                    --bim "{input.test_bim}" \
+                    --out "$base_out"
 
         bash scripts/run_prsice2.sh \
           --prsice-bin "{params.prsice_bin}" \
           --prsice-r "{params.prsice_r}" \
           --rscript "{params.rscript}" \
           --base "$base_out" \
-          --target "$out_dir/test" \
+                    --target "{params.test_prefix}" \
           --out "$out_dir/prsice2" \
           --stat "{params.stat}" \
           --score "{params.score}" \
@@ -195,7 +212,11 @@ rule prsice2_bootstrap:
           --bar-levels "{params.bar_levels}" \
           --perm "{params.perm}" \
           --thread "{params.thread}" \
+                    --quantile "{params.quantile}" \
+                    --quant-break "{params.quant_break}" \
+                    --quant-ref "{params.quant_ref}" \
           --ld "{params.ld_prefix}" \
+                    --extra "{params.additional_params}" \
           --done "{output.done}"
         """
 

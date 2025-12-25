@@ -40,7 +40,6 @@ mkdir -p "$(dirname "$out")"
 
 awk -v bim="$bim" '
 BEGIN{
-  FS=OFS="\t";
   # Load SNP->A2 from bim (col2=snp, col6=a2)
   while ((getline line < bim) > 0) {
     n=split(line, a, /[ \t]+/);
@@ -49,11 +48,13 @@ BEGIN{
   close(bim);
 }
 NR==1{
-  # detect header indices in assoc
-  FS=OFS="\t";
+  # PLINK outputs are whitespace-delimited (may include leading spaces)
+  FS="[ \t]+";
+  OFS="\t";
   for(i=1;i<=NF;i++) {
     h=$i;
-    idx[h]=i;
+    gsub(/^[ \t]+|[ \t]+$/, "", h);
+    if (h != "") idx[h]=i;
   }
   # required columns
   if (!("SNP" in idx) || !("CHR" in idx) || !("BP" in idx) || !("A1" in idx) || !("TEST" in idx) || !("OR" in idx) || !("P" in idx)) {
@@ -65,9 +66,11 @@ NR==1{
   next;
 }
 {
-  test=$idx["TEST"];
+  FS="[ \t]+";
+  OFS="\t";
+  test=$(idx["TEST"]);
   if (test != "ADD") next;
-  snp=$idx["SNP"]; chr=$idx["CHR"]; bp=$idx["BP"]; a1=$idx["A1"]; orv=$idx["OR"]; pv=$idx["P"];
+  snp=$(idx["SNP"]); chr=$(idx["CHR"]); bp=$(idx["BP"]); a1=$(idx["A1"]); orv=$(idx["OR"]); pv=$(idx["P"]);
   if (snp=="" || pv=="NA") next;
   a2v = (snp in a2 ? a2[snp] : "NA");
   print snp, chr, bp, a1, a2v, orv, pv;

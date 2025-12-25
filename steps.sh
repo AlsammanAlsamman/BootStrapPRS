@@ -8,3 +8,6 @@
 # Step 3: PRS (PRSice2) on test set (all bootstraps)
 ./submit.sh --snakefile rules/prs_prsice2.smk results/LAMR_PRS/prs/PRSice2/prs.done --jobs 20
 
+# Step 4: Reporting (AUC + PRS.R2 + case/control plots)
+./submit.sh --snakefile rules/report_prs.smk results/LAMR_PRS/prs/PRSice2/report/report.done
+
