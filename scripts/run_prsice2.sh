@@ -16,6 +16,7 @@ Required:
 
 Optional:
   --ld PREFIX
+  --no-full T|F
   --stat OR|BETA
   --score avg|sum|std|con-std
   --binary-target T|F
@@ -42,6 +43,7 @@ out=""
 done=""
 
 ld=""
+no_full="T"
 stat="OR"
 score="avg"
 binary_target=""
@@ -66,6 +68,7 @@ while [[ $# -gt 0 ]]; do
     --out) out="$2"; shift 2;;
     --done) done="$2"; shift 2;;
     --ld) ld="$2"; shift 2;;
+    --no-full) no_full="$2"; shift 2;;
     --stat) stat="$2"; shift 2;;
     --score) score="$2"; shift 2;;
     --binary-target) binary_target="$2"; shift 2;;
@@ -115,6 +118,13 @@ args=(
   --snp SNP --chr CHR --bp BP --A1 A1 --A2 A2 --stat "$stat" --pvalue P
   --score "$score"
 )
+
+# If enabled, prevent PRSice from adding the implicit full-model threshold (p=1)
+# to the bar-levels list.
+no_full_lc="${no_full,,}"
+if [[ "$no_full_lc" == "t" || "$no_full_lc" == "true" || "$no_full_lc" == "1" || "$no_full_lc" == "yes" ]]; then
+  args+=(--no-full)
+fi
 
 if [[ -n "$binary_target" && "$binary_target" != "NONE" && "$binary_target" != "None" ]]; then
   args+=(--binary-target "$binary_target")

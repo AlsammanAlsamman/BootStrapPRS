@@ -5,6 +5,7 @@ sys.path.append("utils")
 from bioconfigme import (
     get_analysis_value,
     get_results_dir,
+    get_software_module,
 )
 
 
@@ -27,7 +28,22 @@ PRSICE_BIN = str(PRSICE2_CFG.get("prsice_bin", "bin/PRSice"))
 PRSICE_R = str(PRSICE2_CFG.get("prsice_r", "bin/PRSice.R"))
 RSCRIPT = str(PRSICE2_CFG.get("rscript", "Rscript"))
 FORMATTER_R = str(PRSICE2_CFG.get("formatter_r", "scripts/format_gwas_for_prsice.R"))
-PRSICE_MODULE = str(PRSICE2_CFG.get("module", ""))
+
+
+def _default_prsice_module() -> str:
+    # Prefer explicit analysis.yml setting; otherwise fallback to software.yml (R module)
+    m = str(PRSICE2_CFG.get("module", "")).strip()
+    if m:
+        return m
+    for key in ("r", "R", "prsice2", "PRSice2", "PRSice2"):  # try a few common keys
+        try:
+            return str(get_software_module(key))
+        except Exception:
+            continue
+    return ""
+
+
+PRSICE_MODULE = _default_prsice_module()
 
 STAT = str(PRSICE2_CFG.get("stat", "OR"))
 SCORE = str(PRSICE2_CFG.get("score", "avg"))
@@ -37,6 +53,7 @@ CLUMP_KB = str(PRSICE2_CFG.get("clump_kb", "250"))
 CLUMP_R2 = str(PRSICE2_CFG.get("clump_r2", "0.1"))
 CLUMP_P = str(PRSICE2_CFG.get("clump_p", "1"))
 BAR_LEVELS = str(PRSICE2_CFG.get("bar_levels", ""))
+NO_FULL = str(PRSICE2_CFG.get("no_full", "T"))
 PERM = str(PRSICE2_CFG.get("perm", ""))
 THREAD = str(PRSICE2_CFG.get("thread", ""))
 ADDITIONAL_PARAMS = str(PRSICE2_CFG.get("additional_params", ""))
@@ -81,6 +98,19 @@ def _ld_prefix_for_target(target: str) -> str:
     if not isinstance(sub, dict):
         return ""
     return str(sub.get("ld_prefix", ""))
+
+
+def _no_full_for_target(target: str) -> str:
+    cfg = TARGETS_CFG.get(target, {})
+    if not isinstance(cfg, dict):
+        return NO_FULL
+    sub = cfg.get("prsice2", {})
+    if not isinstance(sub, dict):
+        return NO_FULL
+    v = sub.get("no_full")
+    if v is None:
+        return NO_FULL
+    return str(v)
 
 
 TARGETS = sorted([t for t in TARGETS_CFG.keys() if "PRSice2" in _tools_for_target(t)])
@@ -155,6 +185,7 @@ rule prsice2_bootstrap:
         clump_r2=CLUMP_R2,
         clump_p=CLUMP_P,
         bar_levels=BAR_LEVELS,
+        no_full=lambda wc: _no_full_for_target(wc.target),
         perm=PERM,
         thread=THREAD,
         quantile=QUANTILE,
@@ -210,6 +241,7 @@ rule prsice2_bootstrap:
           --clump-r2 "{params.clump_r2}" \
           --clump-p "{params.clump_p}" \
           --bar-levels "{params.bar_levels}" \
+                    --no-full "{params.no_full}" \
           --perm "{params.perm}" \
           --thread "{params.thread}" \
                     --quantile "{params.quantile}" \
