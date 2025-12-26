@@ -63,19 +63,7 @@ rule all:
 
 rule report_prsice2:
     input:
-        prs_done=str(RESULTS_DIR / "{target}" / "prs" / "PRSice2" / "prs.done"),
-        best_files=lambda wc: [
-            str(RESULTS_DIR / wc.target / "prs" / "PRSice2" / f"bootstrap_{rep}" / "prsice2.best")
-            for rep in range(1, _n_bootstraps_for_target(wc.target) + 1)
-        ],
-        summary_files=lambda wc: [
-            str(RESULTS_DIR / wc.target / "prs" / "PRSice2" / f"bootstrap_{rep}" / "prsice2.summary")
-            for rep in range(1, _n_bootstraps_for_target(wc.target) + 1)
-        ],
-        fam_files=lambda wc: [
-            str(RESULTS_DIR / wc.target / "split_train_pca_gwas" / f"bootstrap_{rep}" / "test.fam")
-            for rep in range(1, _n_bootstraps_for_target(wc.target) + 1)
-        ],
+        split_done=str(RESULTS_DIR / "{target}" / "split_train_pca_gwas" / "split_train_pca_gwas.done"),
     output:
         done=str(RESULTS_DIR / "{target}" / "prs" / "PRSice2" / "report" / "report.done"),
     log:
@@ -83,6 +71,7 @@ rule report_prsice2:
     params:
         prsice_module=PRSICE_MODULE,
         rscript=RSCRIPT,
+        results_dir=str(RESULTS_DIR),
         prsice2_dir=str(RESULTS_DIR / "{target}" / "prs" / "PRSice2"),
         split_dir=str(RESULTS_DIR / "{target}" / "split_train_pca_gwas"),
         out_dir=str(RESULTS_DIR / "{target}" / "prs" / "PRSice2" / "report"),
@@ -114,7 +103,7 @@ rule report_prsice2:
         fi
 
         "{params.rscript}" scripts/report_prsice2_bootstraps.R \
-          --results-dir "{RESULTS_DIR}" \
+                    --results-dir "{params.results_dir}" \
           --target "{wildcards.target}" \
           --bootstraps "{params.bootstraps}" \
           --prsice2-dir "{params.prsice2_dir}" \
